@@ -58,9 +58,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
 
-      - name: Install cross
-        run: cargo install cross
-
       - name: Install aarch64-unknown-linux-gnu deps
         if: matrix.target == 'aarch64-unknown-linux-gnu'
         run: rustup target add aarch64-unknown-linux-gnu
@@ -72,7 +69,7 @@ jobs:
           sudo apt install ${{ matrix.linker }}
 
       - name: Build release binary
-        run: cross build release --target ${{ matrix.target }} --target-dir ${{ env.TARGET_DIR }}
+        run: cargo build --release --target ${{ matrix.target }} --target-dir ${{ env.TARGET_DIR }}
       
       - name: Strip release binary (Linux and MacOS)
         if: matrix.build == 'linux' || matrix.build == 'macos'
