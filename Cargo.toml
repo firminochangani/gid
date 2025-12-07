@@ -3,6 +3,9 @@ name = "gid"
 version = "0.1.0"
 edition = "2024"
 
+[target.aarch64-unknown-linux-gnu]
+linker = "aarch64-linux-gnu-gcc"
+
 [dependencies]
 uuid = {version = "1.18.1", features = ["v4"]}
 clap = { version = "4.5.46", features = ["derive"] }
