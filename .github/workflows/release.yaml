@@ -52,10 +52,10 @@ jobs:
           cross: true
           linker: gcc-aarch64-linux-gnu
 
-        # - build: macos
-        #   os: macos-latest
-        #   rust: stable
-        #   target: aarch64-apple-darwin
+        - build: macos
+          os: macos-latest
+          rust: stable
+          target: aarch64-apple-darwin
     steps:
       - name: Checkout
         uses: actions/checkout@v5
