@@ -10,23 +10,23 @@ on:
         type: string
 
 jobs:
-  create-release:
-    name: create-release
-    runs-on: ubuntu-latest
-    steps:
-      - name: Create GitHub release
-        id: release
-        uses: softprops/action-gh-release@v2
-        env:
-          RELEASE_NAME: v${{ inputs.version }}
-        with:
-          token: ${{ secrets.PAT }}
-          name: ${{ env.RELEASE_NAME }}
-          tag_name: ${{ env.RELEASE_NAME }}
+  # create-release:
+  #   name: create-release
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Create GitHub release
+  #       id: release
+  #       uses: softprops/action-gh-release@v2
+  #       env:
+  #         RELEASE_NAME: v${{ inputs.version }}
+  #       with:
+  #         token: ${{ secrets.PAT }}
+  #         name: ${{ env.RELEASE_NAME }}
+  #         tag_name: ${{ env.RELEASE_NAME }}
 
   build-release:
     name: build-release
-    needs: ['create-release']
+    # needs: ['create-release']
     runs-on: ${{ matrix.os }}
     env:
       TARGET_DIR: ./target
@@ -42,11 +42,13 @@ jobs:
           os: ubuntu-latest
           rust: stable
           target: x86_64-unknown-linux-gnu
+          cross: true
 
         - build: linux
           os: ubuntu-latest
           rust: stable
           target: aarch64-unknown-linux-gnu
+          cross: true
 
         # - build: macos
         #   os: macos-latest
@@ -62,6 +64,12 @@ jobs:
       - name: Install aarch64-unknown-linux-gnu deps
         if: matrix.target == 'aarch64-unknown-linux-gnu'
         run: rustup target add aarch64-unknown-linux-gnu
+
+      - name: Install Linker
+        if: matrix.cross
+        run: |
+          sudo apt update
+          sudo apt install ${{ matrix.linker }}
 
       - name: Build release binary
         run: cross build release --target ${{ matrix.target }} --target-dir ${{ env.TARGET_DIR }}
@@ -86,9 +94,9 @@ jobs:
             tar czf "$staging.tar.gz" "$staging"
             echo "ASSET=$staging.tar.gz" >> $GITHUB_ENV
           fi
-      - name: Upload release archive
-        uses: AButler/upload-release-assets@v3.0
-        with:
-          files: ${{ env.ASSET }}
-          repo-token: ${{ secrets.PAT }}
-          release-tag: ${{ env.RELEASE_NAME }}
+      # - name: Upload release archive
+      #   uses: AButler/upload-release-assets@v3.0
+      #   with:
+      #     files: ${{ env.ASSET }}
+      #     repo-token: ${{ secrets.PAT }}
+      #     release-tag: ${{ env.RELEASE_NAME }}
