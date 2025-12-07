@@ -10,23 +10,23 @@ on:
         type: string
 
 jobs:
-  # create-release:
-  #   name: create-release
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Create GitHub release
-  #       id: release
-  #       uses: softprops/action-gh-release@v2
-  #       env:
-  #         RELEASE_NAME: v${{ inputs.version }}
-  #       with:
-  #         token: ${{ secrets.PAT }}
-  #         name: ${{ env.RELEASE_NAME }}
-  #         tag_name: ${{ env.RELEASE_NAME }}
+  create-release:
+    name: create-release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create GitHub release
+        id: release
+        uses: softprops/action-gh-release@v2
+        env:
+          RELEASE_NAME: v${{ inputs.version }}
+        with:
+          token: ${{ secrets.PAT }}
+          name: ${{ env.RELEASE_NAME }}
+          tag_name: ${{ env.RELEASE_NAME }}
 
   build-release:
     name: build-release
-    # needs: ['create-release']
+    needs: ['create-release']
     runs-on: ${{ matrix.os }}
     env:
       TARGET_DIR: ./target
@@ -36,7 +36,7 @@ jobs:
       matrix:
         build:
           - linux
-          # - macos
+          - macos
         include:
         - build: linux
           os: ubuntu-latest
@@ -52,10 +52,10 @@ jobs:
           cross: true
           linker: gcc-aarch64-linux-gnu
 
-        # - build: macos
-        #   os: macos-latest
-        #   rust: stable
-        #   target: aarch64-apple-darwin
+        - build: macos
+          os: macos-latest
+          rust: stable
+          target: aarch64-apple-darwin
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -73,8 +73,8 @@ jobs:
       - name: Build release binary
         run: cargo build --release --target ${{ matrix.target }} --target-dir ${{ env.TARGET_DIR }}
       
-      - name: Strip release binary (Linux and MacOS)
-        if: matrix.build == 'linux' || matrix.build == 'macos'
+      - name: Strip release binary (MacOS)
+        if: matrix.build == 'macos'
         run: strip "target/${{ matrix.target }}/release/${{ env.APP_NAME }}"
 
       - name: Build archive
@@ -93,9 +93,9 @@ jobs:
             tar czf "$staging.tar.gz" "$staging"
             echo "ASSET=$staging.tar.gz" >> $GITHUB_ENV
           fi
-      # - name: Upload release archive
-      #   uses: AButler/upload-release-assets@v3.0
-      #   with:
-      #     files: ${{ env.ASSET }}
-      #     repo-token: ${{ secrets.PAT }}
-      #     release-tag: ${{ env.RELEASE_NAME }}
+      - name: Upload release archive
+        uses: AButler/upload-release-assets@v3.0
+        with:
+          files: ${{ env.ASSET }}
+          repo-token: ${{ secrets.PAT }}
+          release-tag: ${{ env.RELEASE_NAME }}
