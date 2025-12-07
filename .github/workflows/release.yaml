@@ -1,0 +1,109 @@
+name: release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'The version to be released'
+        default: '0.0.1'
+        required: true
+        type: string
+
+jobs:
+  create-release:
+    name: create-release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create GitHub release
+        id: release
+        uses: softprops/action-gh-release@v2
+        env:
+          RELEASE_NAME: v${{ inputs.version }}
+        with:
+          token: ${{ secrets.PAT }}
+          name: ${{ env.RELEASE_NAME }}
+          tag_name: ${{ env.RELEASE_NAME }}
+
+  build-release:
+    name: build-release
+    needs: ['create-release']
+    runs-on: ${{ matrix.os }}
+    env:
+      TARGET_DIR: ./target
+      APP_NAME: gid
+      RELEASE_NAME: v${{ inputs.version }}
+    strategy:
+      matrix:
+        build:
+          - linux
+          - macos
+          # - win-msvc
+          # - win32-msvc
+        include:
+        - build: linux
+          os: ubuntu-latest
+          rust: stable
+          target: x86_64-unknown-linux-gnu
+
+        - build: linux
+          os: ubuntu-latest
+          rust: stable
+          target: aarch64-unknown-linux-gnu
+
+        - build: macos
+          os: macos-latest
+          rust: stable
+          target: aarch64-apple-darwin
+          
+        # For later
+        # - build: macos
+        #   os: macos-latest
+        #   rust: stable
+        #   target: x86_64-apple-darwin
+
+        # - build: win-msvc
+        #   os: windows-latest
+        #   rust: stable
+        #   target: x86_64-pc-windows-msvc
+
+        # - build: win32-msvc
+        #   os: windows-latest
+        #   rust: stable
+        #   target: i686-pc-windows-msvc
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Install MacOS deps
+        if: matrix.target == 'x86_64-apple-darwin'
+        run: rustup target add x86_64-apple-darwin
+
+      - name: Build release binary
+        run: cargo build --verbose --release --target ${{ matrix.target }} --target-dir ${{ env.TARGET_DIR }}
+      
+      - name: Strip release binary (Linux and MacOS)
+        if: matrix.build == 'linux' || matrix.build == 'macos'
+        run: strip "target/${{ matrix.target }}/release/${{ env.APP_NAME }}"
+
+      - name: Build archive
+        shell: bash
+        run: |
+          staging="${{ env.APP_NAME }}-${{ env.RELEASE_NAME }}-${{ matrix.target }}"
+          mkdir "$staging"
+          cp {README.md,LICENSE} "$staging/"
+
+          if [ "${{ matrix.os }}" = "windows-latest" ]; then
+            cp "target/${{ matrix.target }}/release/${{ env.APP_NAME }}.exe" "$staging/"
+            7z a "$staging.zip" "$staging"
+            echo "ASSET=$staging.zip" >> $GITHUB_ENV
+          else
+            cp "target/${{ matrix.target }}/release/${{ env.APP_NAME }}" "$staging/"
+            tar czf "$staging.tar.gz" "$staging"
+            echo "ASSET=$staging.tar.gz" >> $GITHUB_ENV
+          fi
+      - name: Upload release archive
+        uses: AButler/upload-release-assets@v3.0
+        with:
+          files: ${{ env.ASSET }}
+          repo-token: ${{ secrets.PAT }}
+          release-tag: ${{ env.RELEASE_NAME }}
