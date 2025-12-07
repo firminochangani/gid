@@ -53,4 +53,30 @@ fn main() {
 }
 
 #[cfg(test)]
-mod test {}
+mod test {
+    use std::str::FromStr;
+
+    use svix_ksuid::Ksuid;
+    use ulid::Ulid;
+    use uuid::Uuid;
+
+    use crate::{gen_ksuid, gen_ulid, gen_uuid_v4};
+
+    #[test]
+    fn test_gen_uuid() {
+        let parsed = Uuid::parse_str(gen_uuid_v4().as_str());
+        assert!(parsed.is_ok())
+    }
+
+    #[test]
+    fn test_gen_ulid() {
+        let parsed = Ulid::from_str(gen_ulid().as_str());
+        assert!(parsed.is_ok())
+    }
+
+    #[test]
+    fn test_gen_ksui() {
+        let parsed = Ksuid::from_str(gen_ksuid().as_str());
+        assert!(parsed.is_ok())
+    }
+}
