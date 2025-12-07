@@ -44,24 +44,27 @@ jobs:
           target: x86_64-unknown-linux-gnu
 
         - build: linux
-          os: ubuntu-24.04-arm
+          os: ubuntu-latest
           rust: stable
           target: aarch64-unknown-linux-gnu
 
-        - build: macos
-          os: macos-latest
-          rust: stable
-          target: aarch64-apple-darwin
+        # - build: macos
+        #   os: macos-latest
+        #   rust: stable
+        #   target: aarch64-apple-darwin
     steps:
       - name: Checkout
         uses: actions/checkout@v5
+
+      - name: Install cross
+        run: cargo install cross
 
       - name: Install aarch64-unknown-linux-gnu deps
         if: matrix.target == 'aarch64-unknown-linux-gnu'
         run: rustup target add aarch64-unknown-linux-gnu
 
       - name: Build release binary
-        run: cargo build --verbose --release --target ${{ matrix.target }} --target-dir ${{ env.TARGET_DIR }}
+        run: cross build release --target ${{ matrix.target }} --target-dir ${{ env.TARGET_DIR }}
       
       - name: Strip release binary (Linux and MacOS)
         if: matrix.build == 'linux' || matrix.build == 'macos'
