@@ -44,7 +44,7 @@ jobs:
           rust: stable
           target: x86_64-unknown-linux-gnu
           cross: true
-          linker: gcc-aarch64-linux-gnu
+          linker: ""
 
         - build: linux
           os: ubuntu-latest
@@ -74,9 +74,13 @@ jobs:
       - name: Build binary
         run: cargo build --release --target ${{ matrix.target }} --target-dir ${{ env.TARGET_DIR }}
       
-      - name: Strip binary (Linux and MacOS)
-        if: matrix.build == 'linux' || matrix.build == 'macos'
+      - name: Strip binary (Linux x86_x64 and MacOS)
+        if: matrix.target == 'x86_64-unknown-linux-gnu' || matrix.target == 'aarch64-apple-darwin'
         run: strip "target/${{ matrix.target }}/release/${{ env.APP_NAME }}"
+
+      - name: Strip binary (Linux aarch64)
+        if: matrix.target == 'aarch64-unknown-linux-gnu'
+        run: aarch64-linux-gnu-strip "target/${{ matrix.target }}/release/${{ env.APP_NAME }}"
 
       - name: Build archive
         shell: bash
