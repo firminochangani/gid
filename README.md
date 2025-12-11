@@ -4,6 +4,36 @@
 
 A CLI tool to generate unique identifiers.
 
+## Installation
+
+### Linux
+
+```bash
+wget https://github.com/firminochangani/gid/releases/download/v0.0.1/gid-v0.0.1-aarch64-unknown-linux-gnu.tar.gz
+```
+
+```bash
+tar -xf gid-v0.0.1-aarch64-unknown-linux-gnu.tar.gz
+```
+
+```bash
+mv gid-v0.0.1-aarch64-unknown-linux-gnu.tar.gz/gid /usr/local/bin
+```
+
+### MacOS
+
+```bash
+wget https://github.com/firminochangani/gid/releases/download/v0.0.1/gid-v0.0.1-aarch64-apple-darwin.tar.gz
+```
+
+```bash
+tar -xf gid-v0.0.1-aarch64-apple-darwin.tar.gz
+```
+
+```bash
+sudo mv gid-v0.0.1-aarch64-apple-darwin.tar.gz/gid /usr/local/bin
+```
+
 ## Examples
 
 ### Generating a UUID
